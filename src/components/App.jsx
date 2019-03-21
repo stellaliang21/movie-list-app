@@ -9,33 +9,53 @@ class App extends React.Component {
     this.state = {
       movie: '',
       addMovie: '',
-      currentMovie: movies //[{title: "bla", watch: "unwatched"}]
+      currentMovie: movies, //[{title: "bla", watch: "unwatched"}]
     }
-  }
-
-
-  handleFindMovie(callback) {
-    $.get('https://api.themoviedb.org/3/search/movie', {
-      api_key: '2876f55117ee9e9fb74bcb3f8a36ad6b',
-      query: 'barbie'
-    })
-      .done((data) => {
-        console.log(data.items)
-      })
-      .fail((data) => {
-        console.log('fail')
-      });
+    this.handleAddMovie = this.handleAddMovie.bind(this)
+    this.handleFindMovie = this.handleFindMovie.bind(this)
   }
 
   
-
-
-  handleChange(event) {
-    this.setState({ 
-      movie: event.target.value
-    });
-  }
-
+  
+  
+  
+  handleFindMovie(name) {
+    $.get('https://api.themoviedb.org/3/search/movie', {
+      api_key: '2876f55117ee9e9fb74bcb3f8a36ad6b',
+      query: name
+    })
+    .done((data) => {
+      // console.log(data.results[0].id)
+      // console.log(data)
+      $.get(`https://api.themoviedb.org/3/movie/${data.results[0].id}`, {
+        api_key: '2876f55117ee9e9fb74bcb3f8a36ad6b',
+        query: name
+        })
+        .done((data) => {
+          console.log(data)
+          })
+          .fail((data) => {
+            console.log('fail')
+          });
+        })
+        .fail((data) => {
+          console.log('fail')
+        });
+      }
+      
+      
+    handleChange(event) {
+      this.setState({ 
+        movie: event.target.value
+      });
+    }
+      
+    handleAddMovie(event) {
+      this.setState({
+        addMovie: event.target.value
+      })
+    }
+    
   handleClick() {
     var filteredMovie = movies.filter((mov) => {
       return mov.title.includes(this.state.movie);
@@ -45,22 +65,20 @@ class App extends React.Component {
     });
   }
 
-  handleAddMovie(event) {
-    this.setState({
-      addMovie: event.target.value
-    })
-  }
 
   handleAddMovieClick() {
+    
     if (this.state.currentMovie.length === 0) {
       this.setState({
-        currentMovie: [{title: this.state.addMovie, watch: true}]
+        currentMovie: [{title: this.state.addMovie, watch: false}]
       })
     } else {
       this.setState((prevState) => ({
-        currentMovie: [...prevState.currentMovie, {title: this.state.addMovie, watch: true}]
+        currentMovie: [...prevState.currentMovie, {title: this.state.addMovie, watch: false}]
       }))
     }
+    console.log(event.target.value)
+      this.handleFindMovie(this.state.addMovie)
   }
 
 
@@ -72,6 +90,31 @@ class App extends React.Component {
       return mov
     });
     this.setState({currentMovie: movie})
+  }
+  
+
+  all() {
+    this.setState({
+      currentMovie: movies
+    })
+  }
+
+  handleWatched() {
+    var watched = this.state.currentMovie.filter((movie) => {
+      return movie.watch !== true;
+    })
+    this.setState({
+      currentMovie: watched
+    })
+  }
+
+  handleNotWatched() {
+    var notWatched = this.state.currentMovie.filter((movie) => {
+      return movie.watch === true;
+    })
+    this.setState({
+      currentMovie: notWatched
+    })
   }
 
 
@@ -93,7 +136,10 @@ class App extends React.Component {
         <MovieList movies={this.state.currentMovie} 
         toggleWatchBtn={this.toggleWatchBtn.bind(this)}/>
       </div>
-      <button onClick={this.handleTest}></button>
+      <button onClick={this.handleFindMovie.bind(this)}>Test </button>
+      <button onClick={this.all.bind(this)}>All Movies</button>
+      <button onClick={this.handleWatched.bind(this)}>Not Watched</button>
+      <button onClick={this.handleNotWatched.bind(this)}>Watched</button>
     </div>
     )
   }
